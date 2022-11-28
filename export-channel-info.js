@@ -52,7 +52,6 @@ async function downloadChannel(channel, procCookies = false) {
         await page.waitForTimeout(4000);
         const description = await page.evaluate(() => {
             const content = document.querySelector('#description-container').innerHTML;
-            console.log(content);
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(content, "text/html");
             return xmlDoc.querySelector('#description').innerHTML;
@@ -104,7 +103,6 @@ async function downloadChannel(channel, procCookies = false) {
 
         const links = await page.evaluate(() => {
             const content = document.querySelector('#link-list-container').innerHTML;
-            console.log(content);
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(content, "text/html");
             return Array.from(xmlDoc.querySelectorAll('.yt-simple-endpoint.style-scope.ytd-channel-about-metadata-renderer')).map((item) => {
@@ -116,6 +114,7 @@ async function downloadChannel(channel, procCookies = false) {
         });
         const channelId = channel.channel_id;
         const channelUrl = channel.channel_url;
+        const number_of_videos = channel.channel_number_of_videos
         const data = {
             channelId,
             channelUrl,
@@ -125,7 +124,8 @@ async function downloadChannel(channel, procCookies = false) {
             createdOn,
             description,
             links,
-            details
+            details,
+            number_of_videos
         };
 
         await axios({
@@ -140,10 +140,11 @@ async function downloadChannel(channel, procCookies = false) {
                 channel_name: data.channelName,
                 num_of_channel_views: data.numOfChannelViews,
                 subscriber_count: data.subscriberCount,
-                created_on: data.createdOn,
+                created_on: new Date(data.createdOn),
                 description: data.description,
                 links: data.links,
-                details: data.details
+                details: data.details,
+                channel_number_of_videos: data.number_of_videos
             }
         }).then((response) => {
             return response.data;
@@ -164,7 +165,7 @@ async function exec() {
 
 
     browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     const firstChannel = {
@@ -183,7 +184,6 @@ async function exec() {
         const data = await axios({
             method: 'get',
             url: 'http://192.168.100.201:3000/channels-queue',
-
             headers: {
                 'Content-Type': 'application/json'
             }

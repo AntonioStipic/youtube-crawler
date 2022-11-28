@@ -66,13 +66,15 @@ async function downloadChannel(id, procCookies = false, retry = 0) {
                 return Array.from(document.querySelectorAll('.channel-link.yt-simple-endpoint')).map((item) => {
                     return {
                         url: item.href,
-                        name: item.querySelector('ytd-channel-name')?.innerText
+                        name: item.querySelector('ytd-channel-name')?.innerText,
+                        number_of_videos: item.querySelector('#video-count')?.innerText
                     };
-                }).filter((item) => item.url && item.name);
+                }).filter((item) => item.url && item.name && item.number_of_videos);
             });
             for (const channel of channelLinks) {
                 const channelId = channel.url.split('/')[channel.url.split('/').length - 1];
                 const channelUrl = channel.url;
+                const number_of_videos = parseInt(channel.number_of_videos.replace(/,/g, ''));
                 await page.evaluate(() => {
                     const retryAmount = 3;
 
@@ -101,6 +103,7 @@ async function downloadChannel(id, procCookies = false, retry = 0) {
                 const data = {
                     channelId,
                     channelUrl,
+                    number_of_videos
                 };
 
                 await axios({
@@ -111,7 +114,8 @@ async function downloadChannel(id, procCookies = false, retry = 0) {
                     },
                     data: {
                         channel_id: data.channelId,
-                        channel_url: data.channelUrl
+                        channel_url: data.channelUrl,
+                        channel_number_of_videos: data.number_of_videos
                     }
                 }).then((response) => {
                     return response.data;
@@ -153,7 +157,6 @@ async function exec() {
         const {skip, word} = await axios({
             method: 'get',
             url: 'http://192.168.100.201:3000/processed-word',
-
             headers: {
                 'Content-Type': 'application/json'
             }

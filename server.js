@@ -15,14 +15,46 @@ app.listen(PORT, () => {
 });
 
 
-let processedChannels = 0;
-console.log(processedChannels);
 app.get('/', (request, response) => {
     response.json({
         message: `ok`
     });
 });
 
+let processedCategories = 0;
+app.get('/get-channel-from-channels', async(request, response) => {
+    const channel = await db.select('*').from('channels')
+        .where('channel_number_of_videos', '>=', 1)
+        .whereNull('category')
+        .limit(1)
+        .then((result) => {
+            return result[0];
+        })
+    if (!channel) {
+        response.json({
+            code: 404,
+            message: 'No channels found!'
+        });
+        return;
+    }
+    response.json({
+        ...channel,
+        skip: processedCategories
+    })
+    processedCategories++;
+})
+app.post('/download-category', async (request, response) => {
+    const category = request.body.category;
+    const channel = request.body.channel;
+    console.log(channel);
+    await db.table('channels').update({
+        category: category
+    }).where('channel_id', '=', channel);
+    response.json({
+        message: `ok`
+    });
+})
+let processedChannels = 0;
 app.get('/channels-queue', async (request, response) => {
     const channel = await db.select('*').from('channels_queue').where('status', 'idle').limit(1).then((result) => {
         return result[0];
@@ -43,19 +75,15 @@ app.get('/channels-queue', async (request, response) => {
         skip: processedChannels
     })
     processedChannels++;
-
-
-    // return response.status(200).json({
-    //     ...channel
-    // });
 });
 
 
 app.post('/write-channels-id-in-db', async (request, response) => {
-    const {channel_id, channel_url} = request.body;
+    const {channel_id, channel_url, channel_number_of_videos} = request.body;
     await db.table('channels_queue').insert({
         channel_id,
         channel_url,
+        channel_number_of_videos,
         status: 'idle'
     }).onConflict().ignore().catch((err) => {
         console.log(err);
@@ -85,7 +113,8 @@ app.post('/write-channels-in-db', async (request, response) => {
         created_on,
         description,
         links,
-        details
+        details,
+        channel_number_of_videos
     } = request.body;
     await db.table('channels').insert({
         channel_id,
@@ -96,7 +125,8 @@ app.post('/write-channels-in-db', async (request, response) => {
         created_on,
         description,
         links,
-        details
+        details,
+        channel_number_of_videos
     }).onConflict().ignore().catch((err) => {
         console.log(err);
     });
@@ -136,18 +166,84 @@ app.get('/processed-word', (request, response) => {
 
 });
 
-
+/*
+        channel_id,
+        channel_url,
+        channel_name,
+        num_of_channel_views,
+        subscriber_count,
+        created_on,
+        description,
+        links,
+        details
+ */
 app.post('/search', async (request, response) => {
     const search = request.body.search;
-    const fields = request.body.fields || ['channel_id', 'channel_name', 'channel_url', 'num_of_channel_views', 'subscriber_count', 'created_on'];
+    const {
+        page_size = 10,
+        page = 0, fields = ['channel_name', 'details', 'created_on'],
+        minViewsValue,
+        maxViewsValue,
+        minSubsValue,
+        maxSubsValue,
+        orderBy
+    } = request.body;
+    const filters = [
+        ...minViewsValue ? [{
+            field: 'num_of_channel_views',
+            operator: '>',
+            value: minViewsValue
+        }] : [],
+        ...maxViewsValue ? [{
+            field: 'num_of_channel_views',
+            operator: '<',
+            value: maxViewsValue
+        }] : [],
+        ...minSubsValue ? [{
+            field: 'subscriber_count',
+            operator: '<',
+            value: minSubsValue
+        }] : [],
+        ...maxSubsValue ? [{
+            field: 'subscriber_count',
+            operator: '>',
+            value: maxSubsValue
+        }] : []
+    ];
 
-    const channel = await db.select('*').from('channels').where('channel_name', '=', search).then((result) => {
-        return result;
+    const query = db.select('*')
+        .from('channels')
+        .offset(page * page_size)
+        .limit(page_size).orderBy(orderBy?.field || 'created_on', orderBy?.order || 'desc');
+    for (const field of fields) {
+        switch (field) {
+            case 'country': {
+                query.orWhere(field, '=', search);
+                break;
+            }
+            case 'created_on': {
+                query.where(field, '>', search).orWhere(field, '<', search);
+            }
+            default: {
+                query.orWhere(field, 'LIKE', `%${search}%`);
+                break;
+            }
+        }
+    }
+
+    for (const filter of filters) {
+        query.andWhere(filter.field, filter.operator, filter.value);
+    }
+
+
+    const result = await query.catch((error) => {
+        console.log(`Error while searching`, error);
     });
 
 
-
     response.json({
-        channels: channel
+        data: result,
+        page,
+        page_size
     });
 });

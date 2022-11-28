@@ -1,2 +1,29 @@
 1669190346541 - 25 - dit - Error: Protocol error: Connection closed. Most likely the page has been closed.
 1669190346549 - 24 - is - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669381878132 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381878136 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381878139 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381878159 - [object Object] - ProtocolError: Protocol error (Target.closeTarget): No target with given id found
+1669381879551 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381879573 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381879578 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381879844 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381879849 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381879856 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381879865 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381893777 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381893788 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381893793 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669381893798 - [object Object] - Error: Protocol error: Connection closed. Most likely the page has been closed.
+1669644614070 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669644614072 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669644614074 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669645184841 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669645795786 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669645945283 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669646015623 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669646191017 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669646582196 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669651294724 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669651413561 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000
+1669651728748 - [object Object] - Error: connect ECONNREFUSED 127.0.0.1:3000

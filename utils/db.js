@@ -22,17 +22,20 @@ async function main() {
             table.string('channel_name', 2048);
             table.bigInteger('num_of_channel_views');
             table.bigInteger('subscriber_count');
-            table.double('created_on');
+            table.timestamp('created_on');
             table.string('description', 2048);
             table.string('links', 2048);
             table.string('details', 2048);
+            table.string('category', 2048);
+            table.string('channel_number_of_videos', 2048);
         });
     }
     const channels_queue = await pool.schema.hasTable('channels_queue');
     if (!channels_queue) {
         await pool.schema.createTable('channels_queue', (table) => {
-            table.string('channel_id', 255).primary();
-            table.string('channel_url', 255).notNullable();
+            table.string('channel_id', 2048).primary();
+            table.string('channel_url', 2048).notNullable();
+            table.bigInteger('channel_number_of_videos');
             table.string('status', 12);
         });
     }
