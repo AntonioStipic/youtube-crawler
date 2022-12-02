@@ -1,6 +1,7 @@
 const express = require('express');
 const {db} = require("./utils/db");
-
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./openapi.json');
 const PORT = 3030;
 
 const app = express();
@@ -143,3 +144,6 @@ app.get('/search', async (request, response) => {
         page_size
     });
 });
+
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
