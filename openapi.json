@@ -1,0 +1,151 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Channel API",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://petstore3.swagger.io/api/v3"
+    }
+  ],
+  "paths": {
+    "/search": {
+      "get": {
+        "summary": "Search youtube channels",
+        "description": "Search channels using one or more of the dependencies. Dependencies that have min or max near them means that they will be an interval that goes from startpoint(min, if min is undefined, it goes from 0) to endpoint(max, if max is undefined, query everything greater than min or greater than 0)",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "channel_name",
+            "description": "It will try to match anything with the string that has been typed into input field(it should be an input field)",
+            "schema": {
+              "type": "string",
+              "example": "pewdiepie"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_views_value",
+            "schema": {
+              "type": "integer",
+              "example": 2846
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_views_value",
+            "schema": {
+              "type": "integer",
+              "example": 98136
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_subs_value",
+            "schema": {
+              "type": "integer",
+              "example": 2935
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_subs_value",
+            "schema": {
+              "type": "integer",
+              "example": 58276
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_created_on",
+            "schema": {
+              "type": "integer",
+              "example": "2 weeks ago(in datetime)"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_created_on",
+            "schema": {
+              "type": "integer",
+              "example": "2 months ago(in datetime)"
+            }
+          },
+          {
+            "in": "query",
+            "name": "country",
+            "description": "Has to be the exact same name as in database, its case sensitive, countries with 2 or more words go into query with %20",
+            "schema": {
+              "type": "string",
+              "example": "Morocco, United%20States"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "example": {
+                    "data": {
+                      "channel_id": "@Dynamite-Gaming",
+                      "channel_url": "https://www.youtube.com/@Dynamite-Gaming",
+                      "channel_name": "Dynamite Gaming",
+                      "num_of_channel_views": "462720",
+                      "subscriber_count": "1110",
+                      "created_on": "2022-11-14T23:00:00.000Z",
+                      "description": "Welcome to Dynamite Gaming! We create unique and crazy videos by using amazing mods &amp; skins to make you entertain! So, please support us by like &amp; subscribe! Thanks! ",
+                      "links": "{}",
+                      "details": "United States",
+                      "category": null,
+                      "channel_number_of_videos": "1",
+                      "status": "idle"
+                    },
+                    "page": 0,
+                    "page_size": 10
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Server cannot or will not process request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "example": "Someone typed numbers in country field(country is string)"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invalid method for /search",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "example": "DELETE method instead of GET"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Unexpected error",
+            "content": {
+              "aplication/json": {
+                "schema": {
+                  "type": "string",
+                  "example": "Server crash, anything caused by a server"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
