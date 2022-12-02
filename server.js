@@ -46,7 +46,6 @@ app.get('/get-channel-from-channels', async (request, response) => {
 app.post('/download-category', async (request, response) => {
     const category = request.body.category;
     const channel = request.body.channel;
-    console.log(channel);
     await db.table('channels').update({
         category: category
     }).where('channel_id', '=', channel);
@@ -149,7 +148,7 @@ for (const file of files) {
     words.push(...languageWords.words.map(item => item.targetWord));
 }
 
-let processedWords = 0;
+let processedWords = 1000;
 app.get('/', (request, response) => {
     response.json({
         message: `ok`
