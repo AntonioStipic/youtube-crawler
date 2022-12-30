@@ -40,6 +40,17 @@ async function main() {
         });
     }
 
+    const channels_statistics = await pool.schema.hasTable('channels_statistics');
+    if (!channels_statistics) {
+        await pool.schema.createTable('channels_statistics', (table) => {
+            table.string('id', 64).primary();
+            table.string('channel_id', 2048).notNullable();
+            table.bigInteger('num_of_channel_views');
+            table.bigInteger('subscriber_count');
+            table.timestamp('created_on');
+        });
+    }
+
 }
 
 main().catch((error) => {

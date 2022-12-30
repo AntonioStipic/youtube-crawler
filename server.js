@@ -21,11 +21,13 @@ app.get('/', (request, response) => {
     });
 });
 
-let processedCategories = 0;
+let processedCategories = -1;
 app.get('/get-channel-from-channels', async (request, response) => {
+    processedCategories++;
     const channel = await db.select('*').from('channels')
         .where('channel_number_of_videos', '>=', 1)
         .whereNull('category')
+        .offset(processedCategories)
         .limit(1)
         .then((result) => {
             return result[0];
@@ -41,7 +43,6 @@ app.get('/get-channel-from-channels', async (request, response) => {
         ...channel,
         skip: processedCategories
     })
-    processedCategories++;
 })
 app.post('/download-category', async (request, response) => {
     const category = request.body.category;
@@ -53,9 +54,10 @@ app.post('/download-category', async (request, response) => {
         message: `ok`
     });
 })
-let processedChannels = 0;
+let processedChannels = -1;
 app.get('/channels-queue', async (request, response) => {
-    const channel = await db.select('*').from('channels_queue').where('status', 'idle').limit(1).then((result) => {
+    processedChannels++;
+    const channel = await db.select('*').from('channels_queue').where('status', 'idle').offset(processedChannels).limit(1).then((result) => {
         return result[0];
     });
     if (!channel) {
@@ -73,7 +75,6 @@ app.get('/channels-queue', async (request, response) => {
         ...channel,
         skip: processedChannels
     })
-    processedChannels++;
 });
 
 
@@ -165,4 +166,47 @@ app.get('/processed-word', (request, response) => {
 
 });
 
+let updatedChannels = -1;
+app.get('/get-one-channel-from-channels', async (request, response) => {
+    updatedChannels++;
+    const channel = await db.select('*').from('channels_queue')
+        .offset(updatedChannels)
+        .limit(1)
+        .then((result) => {
+            return result[0];
+        })
+    if (!channel) {
+        response.json({
+            code: 404,
+            message: 'No channels found!'
+        });
+        return;
+    }
+    response.json({
+        ...channel,
+        skip: updatedChannels
+    })
+})
+app.post('/update-channels-daily', async (request, response) => {
+
+    const {
+        id,
+        channel_id,
+        num_of_channel_views,
+        subscriber_count,
+        created_on,
+    } = request.body;
+    await db.table('channels_statistics').insert({
+        id,
+        channel_id,
+        num_of_channel_views,
+        subscriber_count,
+        created_on,
+    })
+
+    response.json({
+        message: 'ok'
+    });
+    
+});
 

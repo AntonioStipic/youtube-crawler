@@ -4,7 +4,7 @@ const {db} = require("./utils/db");
 const {random} = require("@jaspero/utils");
 let browser = null;
 
-async function downloadChannel(channel, procCookies = false) {
+async function updateChannel(channel, procCookies = false) {
     const page = await browser.newPage();
 
     try {
@@ -53,27 +53,10 @@ async function downloadChannel(channel, procCookies = false) {
 
     try {
         axios.get(channel.channel_url + '/about').then(async response => {
-            const regexViews = /"viewCountText":{"simpleText":"(.*) pregleda"}/gm.exec(response.data)?.[1];
-            const viewCount = parseInt(regexViews?.replace(/\./g, '')?.replace(/ /g, '')?.replace(/,/g, '')?.replace(/k/g, '000')?.replace(/m/g, '000000')?.replace(/b/g, '000000000'));
-
-            const regexChannelName = /false,"title":{"simpleText":"(.*)"},"avatar"/gm.exec(response.data)?.[1];
-            const channelName = regexChannelName;
-
-
-            const regexDescription = /{"description":{"simpleText":"(.*),"primaryLinks"/gm.exec(response.data)?.[1];
-            const channelDescription = regexDescription.split('}')[0];
-
-            const regexCreationDate = /{"text":"Korisnik se pridružio "},{"text":(.*)"}]},"ca/gm.exec(response.data)?.[1];
-            const creationDate = regexCreationDate.replace(/"/g, '').replace(/,/g, '');
-            const creationDateDay = parseInt(creationDate.split('.')[0]);
-            const creationDateMonth = (creationDate.split('.')[1]).split(' ')[1];
-            const creationDateYear = (creationDate.split('.')[1]).split(' ')[2];
-            const months = ['sij', 'velj', 'ožu', 'tra', 'svi', 'lip', 'srp', 'kol', 'ruj', 'lis', 'stu', 'pro'];
-            const newDate = new Date(`${creationDateYear}-${months.indexOf(creationDateMonth) + 1}-${creationDateDay}`);
-
-
+            const regex = /"viewCountText":{"simpleText":"(.*) pregleda"}/gm.exec(response.data)?.[1];
             const regexSubscriber = /"subscriberCountText":{"accessibility":{"accessibilityData":{"label":"(.*) pretplatnika"}/gm.exec(response.data)?.[1];
             const regexNum = /"subscriberCountText":{"accessibility":{"accessibilityData":{"label":"(.*) pretplatnika"}/gm.exec(response.data)?.[2];
+            const viewCount = parseInt(regex?.replace(/\./g, '')?.replace(/ /g, '')?.replace(/,/g, '')?.replace(/k/g, '000')?.replace(/m/g, '000000')?.replace(/b/g, '000000000'));
             let subscriberCount = parseInt(regexSubscriber?.replace(/\./g, '')?.replace(/ /g, '')?.replace(/,/g, '')?.replace(/k/g, '000')?.replace(/m/g, '000000')?.replace(/b/g, '000000000'));
             switch (regexNum) {
                 case 'K':
@@ -97,20 +80,32 @@ async function downloadChannel(channel, procCookies = false) {
                 default:
                     break;
             }
-            const channelId = channel.channel_id;
-            const channelUrl = channel.channel_url;
+            const channelData = channel.channel_id;
             const date = new Date();
             const data = {
                 id: random.string(64),
                 viewCount: viewCount || 0,
                 subscriberCount: subscriberCount || 0,
                 date,
-                channelId,
-                channelUrl,
-                created_on: newDate,
-                channel_name: channelName,
-                description: channelDescription
+                channelData
             }
+            await axios({
+                method: 'post',
+                url: 'http://localhost:3000/update-channels-daily',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                data: {
+                    id: data.id,
+                    channel_id: data.channelData,
+                    num_of_channel_views: data.viewCount,
+                    created_on: data.date,
+                    subscriber_count: data.subscriberCount
+
+                }
+            }).then((response) => {
+                return response.data;
+            });
 
         }).catch(error => {
             console.log(error);
@@ -136,42 +131,40 @@ async function exec() {
         channel_url: 'https://www.youtube.com/@Anomaly'
     }
     console.log('Preparing to download the first channel: ' + firstChannel.channel_id);
-    await downloadChannel(firstChannel, true);
+    await updateChannel(firstChannel, true);
     console.log('Preparation successful');
-
-    await downloadChannel(firstChannel);
     const PARALLEL = 5;
 
-    // async function parseVideo() {
-    //     const data = await axios({
-    //         method: 'get',
-    //         url: 'http://localhost:3000/channels-queue',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         }
-    //     });
-    //     const channel = data.data;
-    //
-    //
-    //     console.log('index', channel.skip + 1, channel.channel_id);
-    //
-    //     await downloadChannel(channel);
-    //
-    //
-    //     return parseVideo().catch((error) => {
-    //         if (!fs.existsSync('error.log')) {
-    //             fs.writeFileSync('error.log', '');
-    //         }
-    //         fs.appendFileSync('error.log', Date.now() + ' - ' + channel + ' - ' + (error || '').toString() + '\n');
-    //         return parseVideo();
-    //     });
-    // }
-    //
-    // await Promise.allSettled(
-    //     new Array(PARALLEL).fill(null).map(() => {
-    //         return parseVideo();
-    //     })
-    // );
+    async function parseVideo() {
+        const data = await axios({
+            method: 'get',
+            url: 'http://localhost:3000/get-one-channel-from-channels',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const channel = data.data;
+
+
+        console.log('index', channel.skip + 1, channel.channel_id);
+
+        await updateChannel(channel);
+
+
+        return parseVideo().catch((error) => {
+            if (!fs.existsSync('error.log')) {
+                fs.writeFileSync('error.log', '');
+            }
+            fs.appendFileSync('error.log', Date.now() + ' - ' + channel + ' - ' + (error || '').toString() + '\n');
+            return parseVideo();
+        });
+    }
+
+    await Promise.allSettled(
+        new Array(PARALLEL).fill(null).map(() => {
+            return parseVideo();
+        })
+    );
 
 
 }
