@@ -112,9 +112,9 @@ app.post('/write-channels-in-db', async (request, response) => {
         subscriber_count,
         created_on,
         description,
-        links,
-        details,
-        channel_number_of_videos
+        country,
+        channel_number_of_videos,
+        image_url,
     } = request.body;
     await db.table('channels').insert({
         channel_id,
@@ -124,9 +124,9 @@ app.post('/write-channels-in-db', async (request, response) => {
         subscriber_count,
         created_on,
         description,
-        links,
-        details,
-        channel_number_of_videos
+        country,
+        channel_number_of_videos,
+        image_url,
     }).onConflict().ignore().catch((err) => {
         console.log(err);
     });
@@ -195,6 +195,7 @@ app.post('/update-channels-daily', async (request, response) => {
         num_of_channel_views,
         subscriber_count,
         created_on,
+        channel_number_of_videos
     } = request.body;
     await db.table('channels_statistics').insert({
         id,
@@ -202,6 +203,7 @@ app.post('/update-channels-daily', async (request, response) => {
         num_of_channel_views,
         subscriber_count,
         created_on,
+        channel_number_of_videos
     })
 
     response.json({

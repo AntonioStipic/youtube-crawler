@@ -143,7 +143,7 @@ async function downloadChannel(id, procCookies = false, retry = 0) {
 async function exec() {
 
     browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
     })
     console.log('Initial setup and accepting cookies');

@@ -54,31 +54,37 @@ async function updateChannel(channel, procCookies = false) {
     try {
         axios.get(channel.channel_url + '/about').then(async response => {
             const regex = /"viewCountText":{"simpleText":"(.*) pregleda"}/gm.exec(response.data)?.[1];
-            const regexSubscriber = /"subscriberCountText":{"accessibility":{"accessibilityData":{"label":"(.*) pretplatnika"}/gm.exec(response.data)?.[1];
-            const regexNum = /"subscriberCountText":{"accessibility":{"accessibilityData":{"label":"(.*) pretplatnika"}/gm.exec(response.data)?.[2];
             const viewCount = parseInt(regex?.replace(/\./g, '')?.replace(/ /g, '')?.replace(/,/g, '')?.replace(/k/g, '000')?.replace(/m/g, '000000')?.replace(/b/g, '000000000'));
-            let subscriberCount = parseInt(regexSubscriber?.replace(/\./g, '')?.replace(/ /g, '')?.replace(/,/g, '')?.replace(/k/g, '000')?.replace(/m/g, '000000')?.replace(/b/g, '000000000'));
-            switch (regexNum) {
-                case 'K':
-                    subscriberCount *= 1000;
-                    break;
-                case 'M':
-                    subscriberCount *= 1_000_000;
-                    break;
-                case 'B':
-                    subscriberCount *= 1_000_000_000;
-                    break;
-                case 'milijuna':
-                    subscriberCount *= 1_000_000;
-                    break;
-                case 'tisuća':
-                    subscriberCount *= 1000;
-                    break;
-                case 'milijardi':
-                    subscriberCount *= 1_000_000_000;
-                    break;
-                default:
-                    break;
+            const regexNumberOfVideos = /"videosCountText":{"runs":\[{"text":"(.*?)"}/gm.exec(response.data)?.[1];
+            const numberOfVideos = parseInt(regexNumberOfVideos);
+
+            let subscriberCount = "";
+            const regexSubscriber = /"subscriberCountText":{"accessibility":{"accessibilityData":{"label":"(.*) pretplatnika"}/gm.exec(response.data)?.[1];
+            if(regexSubscriber !== undefined) {
+                const regexNum = /"subscriberCountText":{"accessibility":{"accessibilityData":{"label":"(.*) pretplatnika"}/gm.exec(response.data)?.[2];
+                subscriberCount = parseInt(regexSubscriber?.replace(/\./g, '')?.replace(/ /g, '')?.replace(/,/g, '')?.replace(/k/g, '000')?.replace(/m/g, '000000')?.replace(/b/g, '000000000'));
+                switch (regexNum) {
+                    case 'K':
+                        subscriberCount *= 1000;
+                        break;
+                    case 'M':
+                        subscriberCount *= 1_000_000;
+                        break;
+                    case 'B':
+                        subscriberCount *= 1_000_000_000;
+                        break;
+                    case 'milijuna':
+                        subscriberCount *= 1_000_000;
+                        break;
+                    case 'tisuća':
+                        subscriberCount *= 1000;
+                        break;
+                    case 'milijardi':
+                        subscriberCount *= 1_000_000_000;
+                        break;
+                    default:
+                        break;
+                }
             }
             const channelData = channel.channel_id;
             const date = new Date();
@@ -87,11 +93,12 @@ async function updateChannel(channel, procCookies = false) {
                 viewCount: viewCount || 0,
                 subscriberCount: subscriberCount || 0,
                 date,
-                channelData
+                channelData,
+                channel_number_of_videos: numberOfVideos || 0
             }
             await axios({
                 method: 'post',
-                url: 'http://localhost:3000/update-channels-daily',
+                url: 'http://192.168.100.201:3000/update-channels-daily',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -100,8 +107,8 @@ async function updateChannel(channel, procCookies = false) {
                     channel_id: data.channelData,
                     num_of_channel_views: data.viewCount,
                     created_on: data.date,
-                    subscriber_count: data.subscriberCount
-
+                    subscriber_count: data.subscriberCount,
+                    channel_number_of_videos: data.channel_number_of_videos
                 }
             }).then((response) => {
                 return response.data;
@@ -138,7 +145,7 @@ async function exec() {
     async function parseVideo() {
         const data = await axios({
             method: 'get',
-            url: 'http://localhost:3000/get-one-channel-from-channels',
+            url: 'http://192.168.100.201:3000/get-one-channel-from-channels',
             headers: {
                 'Content-Type': 'application/json'
             }

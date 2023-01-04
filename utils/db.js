@@ -25,9 +25,10 @@ async function main() {
             table.timestamp('created_on');
             table.string('description', 2048);
             table.string('links', 2048);
-            table.string('details', 2048);
+            table.string('country', 2048);
             table.string('category', 2048);
             table.string('channel_number_of_videos', 2048);
+            table.string('image_url', 2048);
         });
     }
     const channels_queue = await pool.schema.hasTable('channels_queue');
@@ -47,6 +48,7 @@ async function main() {
             table.string('channel_id', 2048).notNullable();
             table.bigInteger('num_of_channel_views');
             table.bigInteger('subscriber_count');
+            table.bigInteger('channel_number_of_videos');
             table.timestamp('created_on');
         });
     }

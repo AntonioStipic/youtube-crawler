@@ -19,17 +19,7 @@ app.get('/', (request, response) => {
         message: `ok`
     });
 });
-/*
-        channel_id,
-        channel_url,
-        channel_name,
-        num_of_channel_views,
-        subscriber_count,
-        created_on,
-        description,
-        links,
-        details
- */
+
 app.get('/search', async (request, response) => {
     const channel_name  = request.query.channel_name;
     const min_views_value  = request.query.min_views_value;
@@ -104,7 +94,7 @@ app.get('/search', async (request, response) => {
 
     if(country){
         filters.push({
-            field: 'details',
+            field: 'country',
             operator: '=',
             value: country
         })
@@ -145,5 +135,54 @@ app.get('/search', async (request, response) => {
     });
 });
 
+/*
+select channel_id, count(channel_id)
+from channels_statistics
+group by channel_id
+having count(channel_id) > 1
+ */
+app.get('/top', async (request, response) => {
+    const country  = request.query.country;
+    const page_size = 10;
+    const page = request.query.page || 0;
+    const duplicates = await db.select('channel_id')
+        .count('channel_id')
+        .from('channels_statistics')
+        .groupBy('channel_id')
+        .havingRaw('count(channel_id) > 1');
+    const duplicatesInfo = [];
+    console.log(1)
+
+    for(const duplicate of duplicates){
+        console.log(2)
+        const channelInfo = await db.select('channel_id', 'num_of_channel_views', 'created_on')
+            .from('channels_statistics')
+            .where('channel_id', '=', duplicate.channel_id)
+            .limit(10);
+        ;
+        duplicatesInfo.push(channelInfo)
+    }
+    console.log(3);
+
+
+    // const top100 = await db.select('channels_statistics.channel_id', 'channels_statistics.num_of_channel_views', 'channels_statistics.subscriber_count', 'channels_statistics.created_on', 'channels_statistics.channel_number_of_videos', 'channels.country')
+    //     .distinct('channels_statistics.channel_id')
+    //     .from('channels_statistics')
+    //     .innerJoin('channels', 'channels_statistics.channel_id','=', 'channels.channel_id')
+    //     .whereRaw(`(channels_statistics.created_on)::date < (date_trunc('month', now()) + interval '1 month - 1 day')::date`)
+    //     .andWhere('channels.country', '=', country)
+    //     .orderBy('channels_statistics.num_of_channel_views', 'desc')
+    //     .offset(page*page_size)
+    //     .limit(page_size);
+
+    console.log(duplicatesInfo);
+
+
+    response.json({
+        data: duplicatesInfo,
+        page,
+        page_size
+    });
+})
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
